@@ -1,0 +1,30 @@
+# Récupération du password
+PASS=$(kubectl get secret joomla-db-secrets -o jsonpath='{.data.JOOMLA_DB_PASSWORD}' | base64 -d)
+
+# Création de la table de test
+kubectl exec mariadb-galera-0 -c mariadb -- mariadb -u joomla -p$PASS -e "CREATE TABLE IF NOT EXISTS joomla.test_resilience (id INT AUTO_INCREMENT PRIMARY KEY, ts TIMESTAMP, node VARCHAR(50));"
+
+# Boucle d'insertion (1 insertion par seconde)
+echo "Début du test d'insertion..."
+for i in {1..200}; do
+  kubectl exec mariadb-galera-0 -c mariadb -- mariadb -u joomla -p$PASS -e "INSERT INTO joomla.test_resilience (ts, node) VALUES (NOW(), @@hostname);"
+  echo -n "." # Petit point pour montrer que ça avance
+  #sleep 1
+done
+
+
+
+Préparation des données (20 000 lignes)
+# pour le mode stress, supprimer table si déjà présente
+echo "Nœud 0:" && kubectl exec mariadb-galera-0 -c mariadb -- mariadb -u joomla -p$PASS -e "drop table joomla.sbtest1"
+
+kubectl run sysbench-prepare --rm -i --tty --image=severalnines/sysbench -- \
+sysbench --db-driver=mysql --mysql-host=mariadb-galera.default.svc.cluster.local \
+--mysql-user=joomla --mysql-password=$PASS --mysql-db=joomla \
+--range-size=100 --table-size=20000 --tables=1 oltp_common prepare
+
+# insertion/lecture simultanée
+kubectl run sysbench-run --rm -i --tty --image=severalnines/sysbench -- \
+sysbench --db-driver=mysql --mysql-host=mariadb-galera.default.svc.cluster.local \
+--mysql-user=joomla --mysql-password=$PASS --mysql-db=joomla \
+--time=60 --threads=10 --report-interval=5 oltp_read_write run

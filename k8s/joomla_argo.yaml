@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     # Remplacez par l'URL de votre dépôt Git (GitHub/GitLab/Gitea)
-    repoURL: 'git@github.com:patrice3456700/joomla_infra_cluster_galera.git'
+    repoURL: 'https://github.com/patrice3456700/joomla_infra_cluster_galera.git'
     targetRevision: master
     path: k8s/
   destination:
