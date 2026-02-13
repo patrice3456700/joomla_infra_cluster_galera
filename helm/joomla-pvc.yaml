@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: joomla-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce #ReadWriteMany # Ou ReadWriteOnce selon votre stockage
+  resources:
+    requests:
+      storage: 5Gi

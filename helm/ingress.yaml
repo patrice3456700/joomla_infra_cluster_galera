@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: joomla-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # Force la redirection HTTP vers HTTPS
+spec:
+  tls:
+  - hosts:
+    - joomla.christien.pro
+    secretName: joomla-christien-pro-cert # Le certificat sera stocké ici
+  rules:
+  - host: joomla.christien.pro
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: joomla-service
+            port:
+              number: 80

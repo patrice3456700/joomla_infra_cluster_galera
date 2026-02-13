@@ -1,0 +1,62 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: mariadb-galera
+spec:
+  myCnf: |
+    [mariadb]
+    innodb_use_native_aio=0
+  # Augmente le temps de démarrage pour laisser le VPN respirer
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  livenessProbe:
+    initialDelaySeconds: 150
+  rootPasswordSecretKeyRef:
+    name: mariadb-passwords
+    key: root
+  
+  image: mariadb:10.11 # Tag officiel, très stable
+  
+  replicas: 3
+  
+  # Configuration Galera
+  galera:
+    enabled: true
+    sst: mariabackup
+    recovery:
+      enabled: true
+    
+  storage:
+    size: 10Gi
+    storageClassName: local-path # Par défaut sur K3s
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution: # "Required" = Interdiction d'être sur le même nœud
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - node2-vm
+            topologyKey: "kubernetes.io/hostname"
+        - weight: 50
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - node3
+            topologyKey: "kubernetes.io/hostname"
+        - weight: 10
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - master.christien.pro
+            topologyKey: "kubernetes.io/hostname"    

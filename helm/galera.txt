@@ -1,0 +1,23 @@
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+
+# Remplacer les mots de passe par les tiens
+helm upgrade --install mariadb-galera bitnami/mariadb-galera `
+  --namespace default `
+  --set replicaCount=3 `
+  --set rootUser.password="17Bb284635!" `
+  --set db.user="admin" `
+  --set db.password="17Bdd284635!" `
+  --set db.name="joomla" `
+  --set galera.mariabackup.password="17Bdd284635!" `
+  --set persistence.size=10Gi `
+  --set image.tag=10.11-debian-12
+
+
+  # mariadb community
+  helm repo add mariadb-community https://mariadb-operator.github.io/mariadb-operator
+  helm repo update
+  helm install mariadb-operator mariadb-community/mariadb-operator `
+  --namespace default
+
+Créer le Cluster Galera Une fois l'operator installé, on lui demande de créer un cluster de 3 nœuds. On utilise un fichier mariadb-cluster.yaml

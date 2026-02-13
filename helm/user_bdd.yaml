@@ -1,0 +1,35 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: joomla
+spec:
+  mariaDbRef:
+    name: mariadb-galera
+  characterSet: utf8mb4
+  collate: utf8mb4_unicode_ci
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  name: joomla
+spec:
+  mariaDbRef:
+    name: mariadb-galera
+  passwordSecretKeyRef:
+    name: joomla-db-secrets
+    key: JOOMLA_DB_PASSWORD
+  maxUserConnections: 50
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: joomla-grant
+spec:
+  # Attention : le "D" doit être majuscule ici !
+  mariaDbRef: 
+    name: mariadb-galera
+  privileges:
+    - "ALL PRIVILEGES"
+  database: "joomla"
+  table: "*"
+  username: "joomla"
