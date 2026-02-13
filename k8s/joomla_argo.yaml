@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: joomla-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Remplacez par l'URL de votre dépôt Git (GitHub/GitLab/Gitea)
+    repoURL: 'git@github.com:patrice3456700/joomla_infra_cluster_galera.git'
+    targetRevision: master
+    path: k8s/
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true      # Supprime les ressources si vous les enlevez de Git
+      selfHeal: true   # Corrige automatiquement si vous modifiez un truc manuellement via kubectl
+    syncOptions:
+      - CreateNamespace=true
